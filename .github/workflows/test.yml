@@ -1,0 +1,18 @@
+name: Run Unit Tests
+
+on:
+  push:
+   branches:
+     - main
+
+jobs:
+  cargo-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+    - name: Cargo Test
+      run: cargo test
