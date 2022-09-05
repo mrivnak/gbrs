@@ -1,10 +1,13 @@
 [package]
 name = "rust_boy"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Michael Rivnak <mrivnak86@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-piston_window = "*"
+env_logger = "0.9.0"
+log = "0.4.17"
+wgpu = "0.13.1"
+winit = "0.27.2"
