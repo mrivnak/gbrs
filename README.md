@@ -17,3 +17,21 @@ At the moment RustBoy only supports running from the command line
 # Windows
 .\rust_boy.exe <ROM>
 ```
+
+## Development
+
+### Dependencies
+
+- Rust >= 1.56.0
+
+### Building
+
+```sh
+cargo build
+```
+
+### Running
+
+```sh
+cargo run -- <ROM>
+```
