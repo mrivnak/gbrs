@@ -19,7 +19,7 @@ pub fn main() {
         .author(AUTHORS)
         .arg(
             Arg::with_name("FILE")
-                .help("Display verbose output")
+                .help("ROM file to run")
                 .required(true),
         )
         .arg(
