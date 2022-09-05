@@ -6,7 +6,7 @@ on:
      - main
 
 jobs:
-  build:
+  cargo-check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
