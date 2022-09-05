@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  release-tauri:
+  release:
     strategy:
       fail-fast: false
       matrix:

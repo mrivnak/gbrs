@@ -1,4 +1,4 @@
-name: Build
+name: Cargo Check
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
      - main
 
 jobs:
-  cargo-test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -14,5 +14,5 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-    - name: Cargo Build
-      run: cargo build
+    - name: Cargo Check
+      run: cargo check

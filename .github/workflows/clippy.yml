@@ -3,7 +3,7 @@ name: Run Clippy Linter
 on: push
 
 jobs:
-  clippy_check:
+  clippy-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
