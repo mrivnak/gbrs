@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_get_zero() {
-        let mut reg: Registers = Registers {
+        let reg: Registers = Registers {
             a: 0,
             b: 0,
             c: 0,
