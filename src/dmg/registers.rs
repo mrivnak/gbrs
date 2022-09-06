@@ -1,3 +1,5 @@
+use std::mem::zeroed;
+
 #[derive(Copy, Clone, Debug)]
 struct FlagsRegister {
     zero: bool,
@@ -6,21 +8,26 @@ struct FlagsRegister {
     carry: bool,
 }
 
+const ZERO_BIT: u8 = 7;
+const SUBTRACT_BIT: u8 = 6;
+const HALF_CARRY_BIT: u8 = 5;
+const CARRY_BIT: u8 = 4;
+
 impl std::convert::From<FlagsRegister> for u8 {
     fn from(flag: FlagsRegister) -> u8 {
-        (if flag.zero { 1 } else { 0 }) << 7
-            | (if flag.subtract { 1 } else { 0 }) << 6
-            | (if flag.half_carry { 1 } else { 0 }) << 5
-            | (if flag.carry { 1 } else { 0 }) << 4
+        (if flag.zero { 1 } else { 0 }) << ZERO_BIT
+            | (if flag.subtract { 1 } else { 0 }) << SUBTRACT_BIT
+            | (if flag.half_carry { 1 } else { 0 }) << HALF_CARRY_BIT
+            | (if flag.carry { 1 } else { 0 }) << CARRY_BIT
     }
 }
 
 impl std::convert::From<u8> for FlagsRegister {
     fn from(byte: u8) -> Self {
-        let zero = (byte & 0b10000000) != 0;
-        let subtract = (byte & 0b01000000) != 0;
-        let half_carry = (byte & 0b00100000) != 0;
-        let carry = (byte & 0b00010000) != 0;
+        let zero = (byte & (0b1 << ZERO_BIT)) != 0;
+        let subtract = (byte & (0b1 << SUBTRACT_BIT)) != 0;
+        let half_carry = (byte & (0b1 << HALF_CARRY_BIT)) != 0;
+        let carry = (byte & (0b1 << CARRY_BIT)) != 0;
 
         FlagsRegister {
             zero,
