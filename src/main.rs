@@ -1,9 +1,11 @@
-use clap::{App, AppSettings, Arg};
+use clap::{App, Arg};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
+
+mod dmg;
 
 pub fn main() {
     // Get information from Cargo.toml
