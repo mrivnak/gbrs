@@ -51,20 +51,20 @@ pub struct Registers {
 }
 
 impl Registers {
-    pub fn get_reg8(reg: Register) -> u8 {
-        todo!();
+    pub fn get_reg8(&self, reg: Register) -> u8 {
+        todo!()
     }
 
-    pub fn get_reg16(reg_1: Register, reg_2: Register) -> u16 {
-        todo!();
+    pub fn get_reg16(&self, reg_1: Register, reg_2: Register) -> u16 {
+        todo!()
     }
 
-    pub fn set_reg8(reg: Register, value: u8) {
-        todo!();
+    pub fn set_reg8(&self,reg: Register, value: u8) {
+        todo!()
     }
 
-    pub fn set_reg16(reg_1: Register, reg_2: Register, value: u16) {
-        todo!();
+    pub fn set_reg16(&self, reg_1: Register, reg_2: Register, value: u16) {
+        todo!()
     }
 
     pub fn get_zero(&self) -> bool {
@@ -119,4 +119,29 @@ pub enum Register {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_reg8() {
+        let test_value: u8 = 0x14;
+
+        let reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false
+            }
+        };
+
+        let result = reg.get_reg8(Register::A);
+    }
+}
