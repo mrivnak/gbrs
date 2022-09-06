@@ -66,6 +66,8 @@ impl Registers {
         match (reg_1, reg_2) {
             (Register::A, Register::F) => (self.a as u16) << 8 | u8::from(self.flags) as u16,
             (Register::B, Register::C) => (self.b as u16) << 8 | self.c as u16,
+            (Register::D, Register::E) => (self.d as u16) << 8 | self.e as u16,
+            (Register::H, Register::L) => (self.h as u16) << 8 | self.l as u16,
             _ => panic!("Unsupported registers in get_reg16()"),
         }
     }
@@ -85,9 +87,21 @@ impl Registers {
 
     pub fn set_reg16(&mut self, reg_1: Register, reg_2: Register, value: u16) {
         match (reg_1, reg_2) {
+            (Register::A, Register::F) => {
+                self.a = ((value & 0xFF00) >> 8) as u8;
+                self.flags = FlagsRegister::from((value & 0xFF) as u8);
+            }
             (Register::B, Register::C) => {
                 self.b = ((value & 0xFF00) >> 8) as u8;
                 self.c = (value & 0xFF) as u8;
+            }
+            (Register::D, Register::E) => {
+                self.d = ((value & 0xFF00) >> 8) as u8;
+                self.e = (value & 0xFF) as u8;
+            }
+            (Register::H, Register::L) => {
+                self.h = ((value & 0xFF00) >> 8) as u8;
+                self.l = (value & 0xFF) as u8;
             }
             _ => panic!("Unsupported registers in get_reg16()"),
         }
@@ -255,5 +269,175 @@ mod tests {
 
         assert_eq!(result_high, expected_high);
         assert_eq!(result_low, expected_low);
+    }
+
+    #[test]
+    fn test_get_zero() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: true,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        let result = reg.get_zero();
+
+        assert!(result);
+    }
+
+    #[test]
+    fn test_get_subtract() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: true,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        let result = reg.get_subtract();
+
+        assert!(result);
+    }
+
+    #[test]
+    fn test_get_half_carry() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: true,
+                carry: false,
+            },
+        };
+
+        let result = reg.get_half_carry();
+
+        assert!(result);
+    }
+
+    #[test]
+    fn test_get_carry() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: true,
+            },
+        };
+
+        let result = reg.get_carry();
+
+        assert!(result);
+    }
+
+    #[test]
+    fn test_flags_from_u8() {
+        let test: u8 = 0b11000000;
+
+        let flags = FlagsRegister::from(test);
+
+        assert!(flags.zero);
+        assert!(flags.subtract);
+        assert!(!flags.half_carry);
+        assert!(!flags.carry);
+    }
+
+    #[test]
+    fn test_u8_from_flags() {
+        let expected: u8 = 0b11000000;
+        let flags = FlagsRegister {
+            zero: true,
+            subtract: true,
+            half_carry: false,
+            carry: false,
+        };
+
+        let result = u8::from(flags);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_get_flags() {
+        let expected: u8 = 0b11000000;
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: true,
+                subtract: true,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        let result = reg.get_flags();
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn test_set_flags() {
+        let test: u8 = 0b11000000;
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        reg.set_flags(test);
+
+        assert!(reg.flags.zero);
+        assert!(reg.flags.subtract);
+        assert!(!reg.flags.half_carry);
+        assert!(!reg.flags.carry);
     }
 }
