@@ -364,6 +364,98 @@ mod tests {
     }
 
     #[test]
+    fn test_set_zero() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        reg.set_zero(true);
+
+        assert!(reg.flags.zero);
+    }
+
+    #[test]
+    fn test_set_subtract() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        reg.set_subtract(true);
+
+        assert!(reg.flags.subtract);
+    }
+
+    #[test]
+    fn test_set_half_carry() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        reg.set_half_carry(true);
+
+        assert!(reg.flags.half_carry);
+    }
+
+    #[test]
+    fn test_set_carry() {
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        reg.set_carry(true);
+
+        assert!(reg.flags.carry);
+    }
+
+    #[test]
     fn test_flags_from_u8() {
         let test: u8 = 0b11000000;
 
