@@ -1,5 +1,3 @@
-use std::mem::zeroed;
-
 #[derive(Copy, Clone, Debug)]
 struct FlagsRegister {
     zero: bool,
@@ -52,19 +50,47 @@ pub struct Registers {
 
 impl Registers {
     pub fn get_reg8(&self, reg: Register) -> u8 {
-        todo!()
+        match reg {
+            Register::A => self.a,
+            Register::B => self.b,
+            Register::C => self.c,
+            Register::D => self.d,
+            Register::E => self.e,
+            Register::F => u8::from(self.flags),
+            Register::H => self.h,
+            Register::L => self.l,
+        }
     }
 
     pub fn get_reg16(&self, reg_1: Register, reg_2: Register) -> u16 {
-        todo!()
+        match (reg_1, reg_2) {
+            (Register::A, Register::F) => (self.a as u16) << 8 | u8::from(self.flags) as u16,
+            (Register::B, Register::C) => (self.b as u16) << 8 | self.c as u16,
+            _ => panic!("Unsupported registers in get_reg16()"),
+        }
     }
 
-    pub fn set_reg8(&self,reg: Register, value: u8) {
-        todo!()
+    pub fn set_reg8(&mut self, reg: Register, value: u8) {
+        match reg {
+            Register::A => self.a = value,
+            Register::B => self.b = value,
+            Register::C => self.c = value,
+            Register::D => self.d = value,
+            Register::E => self.e = value,
+            Register::F => self.flags = FlagsRegister::from(value),
+            Register::H => self.h = value,
+            Register::L => self.l = value,
+        }
     }
 
-    pub fn set_reg16(&self, reg_1: Register, reg_2: Register, value: u16) {
-        todo!()
+    pub fn set_reg16(&mut self, reg_1: Register, reg_2: Register, value: u16) {
+        match (reg_1, reg_2) {
+            (Register::B, Register::C) => {
+                self.b = ((value & 0xFF00) >> 8) as u8;
+                self.c = (value & 0xFF) as u8;
+            }
+            _ => panic!("Unsupported registers in get_reg16()"),
+        }
     }
 
     pub fn get_zero(&self) -> bool {
@@ -100,11 +126,11 @@ impl Registers {
     }
 
     pub fn get_flags(&mut self) -> u8 {
-        self.flags.into()
+        u8::from(self.flags)
     }
 
     pub fn set_flags(&mut self, value: u8) {
-        self.flags = value.into();
+        self.flags = FlagsRegister::from(value);
     }
 }
 
@@ -114,6 +140,7 @@ pub enum Register {
     C,
     D,
     E,
+    F,
     H,
     L,
 }
@@ -124,9 +151,61 @@ mod tests {
 
     #[test]
     fn test_get_reg8() {
-        let test_value: u8 = 0x14;
+        let expected: u8 = 0x14;
 
         let reg: Registers = Registers {
+            a: expected,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        let result = reg.get_reg8(Register::A);
+
+        assert_eq!(result, expected)
+    }
+
+    #[test]
+    fn test_get_reg16() {
+        let expected: u16 = 0xFF00;
+        let expected_high: u8 = ((expected & 0xFF00) >> 8) as u8;
+        let expected_low: u8 = (expected & 0xFF) as u8;
+
+        let reg: Registers = Registers {
+            a: 0,
+            b: expected_high,
+            c: expected_low,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        let result = reg.get_reg16(Register::B, Register::C);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_set_reg8() {
+        let expected: u8 = 0x14;
+
+        let mut reg: Registers = Registers {
             a: 0,
             b: 0,
             c: 0,
@@ -138,10 +217,43 @@ mod tests {
                 zero: false,
                 subtract: false,
                 half_carry: false,
-                carry: false
-            }
+                carry: false,
+            },
         };
 
-        let result = reg.get_reg8(Register::A);
+        reg.set_reg8(Register::A, expected);
+        let result = reg.a;
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_set_reg16() {
+        let expected: u16 = 0xFF00;
+        let expected_high: u8 = ((expected & 0xFF00) >> 8) as u8;
+        let expected_low: u8 = (expected & 0xFF) as u8;
+
+        let mut reg: Registers = Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            h: 0,
+            l: 0,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
+        };
+
+        reg.set_reg16(Register::B, Register::C, expected);
+        let result_high = reg.b;
+        let result_low = reg.c;
+
+        assert_eq!(result_high, expected_high);
+        assert_eq!(result_low, expected_low);
     }
 }

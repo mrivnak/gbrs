@@ -64,6 +64,8 @@ pub fn main() {
             } => *control_flow = ControlFlow::Exit,
             _ => {}
         },
-        _ => {}
+        _ => {
+            // Main loop code goes here
+        }
     });
 }
