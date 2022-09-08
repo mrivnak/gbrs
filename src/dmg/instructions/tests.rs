@@ -3,6 +3,26 @@ use crate::dmg::registers::Registers;
 use super::*;
 
 #[test]
+fn test_get_x8() {
+    todo!();
+}
+
+#[test]
+fn test_get_x16() {
+    todo!();
+}
+
+#[test]
+fn test_set_x8() {
+    todo!();
+}
+
+#[test]
+fn test_set_x16() {
+    todo!();
+}
+
+#[test]
 fn test_NOP() {
     let base_mem = MemoryBus::create();
     let mut out_mem = base_mem.clone();

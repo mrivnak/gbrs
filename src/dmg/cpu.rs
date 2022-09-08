@@ -1,6 +1,6 @@
 use super::instructions::{self, execute_instruction};
 use super::memory::MemoryBus;
-use super::registers::{RegisterTarget, Registers};
+use super::registers::{Register, Registers};
 
 pub struct CPU {
     memory: MemoryBus,
