@@ -46,6 +46,8 @@ pub struct Registers {
     h: u8,
     l: u8,
     flags: FlagsRegister,
+    pub pc: u16,
+    pub sp: u16,
 }
 
 impl Registers {
@@ -64,6 +66,8 @@ impl Registers {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         }
     }
 
@@ -201,6 +205,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_reg8(RegisterTarget::A);
@@ -228,6 +234,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_reg16(RegisterTarget::B, RegisterTarget::C);
@@ -253,6 +261,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_reg8(RegisterTarget::A, expected);
@@ -281,6 +291,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_reg16(RegisterTarget::B, RegisterTarget::C, expected);
@@ -307,6 +319,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_zero();
@@ -316,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_get_subtract() {
-        let mut reg: Registers = Registers {
+        let reg: Registers = Registers {
             a: 0,
             b: 0,
             c: 0,
@@ -330,6 +344,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_subtract();
@@ -339,7 +355,7 @@ mod tests {
 
     #[test]
     fn test_get_half_carry() {
-        let mut reg: Registers = Registers {
+        let reg: Registers = Registers {
             a: 0,
             b: 0,
             c: 0,
@@ -353,6 +369,8 @@ mod tests {
                 half_carry: true,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_half_carry();
@@ -362,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_get_carry() {
-        let mut reg: Registers = Registers {
+        let reg: Registers = Registers {
             a: 0,
             b: 0,
             c: 0,
@@ -376,6 +394,8 @@ mod tests {
                 half_carry: false,
                 carry: true,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_carry();
@@ -399,6 +419,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_zero(true);
@@ -422,6 +444,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_subtract(true);
@@ -445,6 +469,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_half_carry(true);
@@ -468,6 +494,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_carry(true);
@@ -519,6 +547,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         let result = reg.get_flags();
@@ -543,6 +573,8 @@ mod tests {
                 half_carry: false,
                 carry: false,
             },
+            pc: 0x0000,
+            sp: 0x0000,
         };
 
         reg.set_flags(test);
