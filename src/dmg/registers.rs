@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 struct FlagsRegister {
     zero: bool,
     subtract: bool,
@@ -36,7 +36,7 @@ impl std::convert::From<u8> for FlagsRegister {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Registers {
     a: u8,
     b: u8,
@@ -49,57 +49,77 @@ pub struct Registers {
 }
 
 impl Registers {
-    pub fn get_reg8(&self, reg: Register) -> u8 {
-        match reg {
-            Register::A => self.a,
-            Register::B => self.b,
-            Register::C => self.c,
-            Register::D => self.d,
-            Register::E => self.e,
-            Register::F => u8::from(self.flags),
-            Register::H => self.h,
-            Register::L => self.l,
+    pub fn create() -> Registers {
+        Registers {
+            a: 0x00,
+            b: 0x00,
+            c: 0x00,
+            d: 0x00,
+            e: 0x00,
+            h: 0x00,
+            l: 0x00,
+            flags: FlagsRegister {
+                zero: false,
+                subtract: false,
+                half_carry: false,
+                carry: false,
+            },
         }
     }
 
-    pub fn get_reg16(&self, reg_1: Register, reg_2: Register) -> u16 {
+    pub fn get_reg8(&self, reg: RegisterTarget) -> u8 {
+        match reg {
+            RegisterTarget::A => self.a,
+            RegisterTarget::B => self.b,
+            RegisterTarget::C => self.c,
+            RegisterTarget::D => self.d,
+            RegisterTarget::E => self.e,
+            RegisterTarget::F => u8::from(self.flags),
+            RegisterTarget::H => self.h,
+            RegisterTarget::L => self.l,
+        }
+    }
+
+    pub fn get_reg16(&self, reg_1: RegisterTarget, reg_2: RegisterTarget) -> u16 {
         match (reg_1, reg_2) {
-            (Register::A, Register::F) => (self.a as u16) << 8 | u8::from(self.flags) as u16,
-            (Register::B, Register::C) => (self.b as u16) << 8 | self.c as u16,
-            (Register::D, Register::E) => (self.d as u16) << 8 | self.e as u16,
-            (Register::H, Register::L) => (self.h as u16) << 8 | self.l as u16,
+            (RegisterTarget::A, RegisterTarget::F) => {
+                (self.a as u16) << 8 | u8::from(self.flags) as u16
+            }
+            (RegisterTarget::B, RegisterTarget::C) => (self.b as u16) << 8 | self.c as u16,
+            (RegisterTarget::D, RegisterTarget::E) => (self.d as u16) << 8 | self.e as u16,
+            (RegisterTarget::H, RegisterTarget::L) => (self.h as u16) << 8 | self.l as u16,
             _ => panic!("Unsupported registers in get_reg16()"),
         }
     }
 
-    pub fn set_reg8(&mut self, reg: Register, value: u8) {
+    pub fn set_reg8(&mut self, reg: RegisterTarget, value: u8) {
         match reg {
-            Register::A => self.a = value,
-            Register::B => self.b = value,
-            Register::C => self.c = value,
-            Register::D => self.d = value,
-            Register::E => self.e = value,
-            Register::F => self.flags = FlagsRegister::from(value),
-            Register::H => self.h = value,
-            Register::L => self.l = value,
+            RegisterTarget::A => self.a = value,
+            RegisterTarget::B => self.b = value,
+            RegisterTarget::C => self.c = value,
+            RegisterTarget::D => self.d = value,
+            RegisterTarget::E => self.e = value,
+            RegisterTarget::F => self.flags = FlagsRegister::from(value),
+            RegisterTarget::H => self.h = value,
+            RegisterTarget::L => self.l = value,
         }
     }
 
-    pub fn set_reg16(&mut self, reg_1: Register, reg_2: Register, value: u16) {
+    pub fn set_reg16(&mut self, reg_1: RegisterTarget, reg_2: RegisterTarget, value: u16) {
         match (reg_1, reg_2) {
-            (Register::A, Register::F) => {
+            (RegisterTarget::A, RegisterTarget::F) => {
                 self.a = ((value & 0xFF00) >> 8) as u8;
                 self.flags = FlagsRegister::from((value & 0xFF) as u8);
             }
-            (Register::B, Register::C) => {
+            (RegisterTarget::B, RegisterTarget::C) => {
                 self.b = ((value & 0xFF00) >> 8) as u8;
                 self.c = (value & 0xFF) as u8;
             }
-            (Register::D, Register::E) => {
+            (RegisterTarget::D, RegisterTarget::E) => {
                 self.d = ((value & 0xFF00) >> 8) as u8;
                 self.e = (value & 0xFF) as u8;
             }
-            (Register::H, Register::L) => {
+            (RegisterTarget::H, RegisterTarget::L) => {
                 self.h = ((value & 0xFF00) >> 8) as u8;
                 self.l = (value & 0xFF) as u8;
             }
@@ -148,7 +168,7 @@ impl Registers {
     }
 }
 
-pub enum Register {
+pub enum RegisterTarget {
     A,
     B,
     C,
@@ -183,7 +203,7 @@ mod tests {
             },
         };
 
-        let result = reg.get_reg8(Register::A);
+        let result = reg.get_reg8(RegisterTarget::A);
 
         assert_eq!(result, expected)
     }
@@ -210,7 +230,7 @@ mod tests {
             },
         };
 
-        let result = reg.get_reg16(Register::B, Register::C);
+        let result = reg.get_reg16(RegisterTarget::B, RegisterTarget::C);
 
         assert_eq!(result, expected);
     }
@@ -235,7 +255,7 @@ mod tests {
             },
         };
 
-        reg.set_reg8(Register::A, expected);
+        reg.set_reg8(RegisterTarget::A, expected);
         let result = reg.a;
 
         assert_eq!(result, expected);
@@ -263,7 +283,7 @@ mod tests {
             },
         };
 
-        reg.set_reg16(Register::B, Register::C, expected);
+        reg.set_reg16(RegisterTarget::B, RegisterTarget::C, expected);
         let result_high = reg.b;
         let result_low = reg.c;
 
