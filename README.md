@@ -3,6 +3,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/mrivnak/rust-boy/Cargo%20Check)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/mrivnak/rust-boy/Run%20Unit%20Tests?label=tests)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/mrivnak/rust-boy?display_name=tag&sort=semver)
+![Lines of code](https://img.shields.io/tokei/lines/github/mrivnak/rust-boy)
 
 Nintendo Game Boy emulator written in Rust
 
