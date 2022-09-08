@@ -28,7 +28,7 @@ enum InstructionTarget {
     HL,
     N8,
     N16,
-    ADD_HL,
+    ADDR_HL,
 }
 
 enum Operation {
@@ -78,7 +78,7 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
 
 fn get_x8(
     target: InstructionTarget,
-    addr: Address,
+    addr: Option<Address>,
     reg: &mut Registers,
     mem: &mut MemoryBus,
 ) -> u8 {
@@ -90,15 +90,15 @@ fn get_x8(
         InstructionTarget::E => reg.get_reg8(Register::E),
         InstructionTarget::H => reg.get_reg8(Register::H),
         InstructionTarget::L => reg.get_reg8(Register::L),
-        InstructionTarget::N8 => mem.read(addr),
-        InstructionTarget::ADD_HL => mem.read(reg.get_reg16(RegisterPair::HL)),
+        InstructionTarget::N8 => mem.read(addr.expect("Address is None for n8 get instruction")),
+        InstructionTarget::ADDR_HL => mem.read(reg.get_reg16(RegisterPair::HL)),
         _ => panic!("Unsupported target for 8-bit value read"),
     }
 }
 
 fn get_x16(
     target: InstructionTarget,
-    addr: Address,
+    addr: Option<Address>,
     reg: &mut Registers,
     mem: &mut MemoryBus,
 ) -> u16 {
@@ -106,7 +106,10 @@ fn get_x16(
         InstructionTarget::BC => reg.get_reg16(RegisterPair::BC),
         InstructionTarget::DE => reg.get_reg16(RegisterPair::DE),
         InstructionTarget::HL => reg.get_reg16(RegisterPair::HL),
-        InstructionTarget::N16 => ((mem.read(addr + 1) as u16) << 8) | mem.read(addr) as u16,
+        InstructionTarget::N16 => {
+            let addr = addr.expect("Address is None for n16 get instruction");
+            ((mem.read(addr + 1) as u16) << 8) | mem.read(addr) as u16
+        }
         _ => panic!("Unsupported target for 16-bit value read"),
     }
 }

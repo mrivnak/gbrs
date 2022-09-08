@@ -1,25 +1,52 @@
-use crate::dmg::registers::Registers;
+use std::ops::Add;
+
+use crate::dmg::{registers::Registers, data::SplitByte};
 
 use super::*;
 
 #[test]
-fn test_get_x8() {
-    todo!();
+fn test_get_x8_n8() {
+    let mut mem = MemoryBus::create();
+    let mut reg = Registers::create();
+
+    let addr = 0x0000;
+    let data = 0xAA;
+    mem.write(addr, data);
+
+    let n8 = get_x8(InstructionTarget::N8, Some(addr), &mut reg, &mut mem);
+
+    assert_eq!(data, n8);
 }
 
 #[test]
-fn test_get_x16() {
-    todo!();
+fn test_get_x8_reg() {
+    let mut mem = MemoryBus::create();
+    let mut reg = Registers::create();
+
+    let data = 0xAA;
+    reg.set_reg8(Register::B, data);
+
+    let b = get_x8(InstructionTarget::B, None, &mut reg, &mut mem);
+
+    assert_eq!(data, b);
 }
 
 #[test]
-fn test_set_x8() {
-    todo!();
-}
+fn test_get_x8_addr_hl() {
+    let mut mem = MemoryBus::create();
+    let mut reg = Registers::create();
 
-#[test]
-fn test_set_x16() {
-    todo!();
+    let addr: Address = 0x0000;
+    let addr_bytes = addr.split_byte();
+    let data = 0xAA;
+    
+    reg.set_reg8(Register::H, addr_bytes.0);
+    reg.set_reg8(Register::L, addr_bytes.1);
+    mem.write(addr, data);
+
+    let addr_hl = get_x8(InstructionTarget::ADDR_HL, None, &mut reg, &mut mem);
+
+    assert_eq!(data, addr_hl);
 }
 
 #[test]
