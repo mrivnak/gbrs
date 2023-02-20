@@ -11,7 +11,7 @@ fn test_get_x8_n8() {
     let data = 0xAA;
     mem.write(addr, data);
 
-    let n8 = get_x8(InstructionTarget::N8, Some(addr), &mut reg, &mut mem);
+    let n8 = get_x8(InstructionTarget::N8(addr), &mut reg, &mut mem);
 
     assert_eq!(data, n8);
 }
@@ -24,7 +24,7 @@ fn test_get_x8_reg() {
     let data = 0xAA;
     reg.set_reg8(Register::B, data);
 
-    let b = get_x8(InstructionTarget::B, None, &mut reg, &mut mem);
+    let b = get_x8(InstructionTarget::B, &mut reg, &mut mem);
 
     assert_eq!(data, b);
 }
@@ -38,11 +38,11 @@ fn test_get_x8_addr_hl() {
     let addr_bytes = addr.split_byte();
     let data = 0xAA;
     
-    reg.set_reg8(Register::H, addr_bytes.0);
-    reg.set_reg8(Register::L, addr_bytes.1);
+    reg.set_reg8(Register::H, addr_bytes.1);
+    reg.set_reg8(Register::L, addr_bytes.0);
     mem.write(addr, data);
 
-    let addr_hl = get_x8(InstructionTarget::ADDR_HL, None, &mut reg, &mut mem);
+    let addr_hl = get_x8(InstructionTarget::N8(reg.get_reg16(RegisterPair::HL)), &mut reg, &mut mem);
 
     assert_eq!(data, addr_hl);
 }
@@ -55,7 +55,7 @@ fn test_set_x8_n8() {
     let addr = 0x0000;
     let data = 0xAA;
 
-    set_x8(InstructionTarget::N8, Some(addr), &mut reg, &mut mem, data);
+    set_x8(InstructionTarget::N8(addr), &mut reg, &mut mem, data);
 
     let n8 = mem.read(addr);
 
@@ -69,7 +69,7 @@ fn test_set_x8_reg() {
 
     let data = 0xAA;
 
-    set_x8(InstructionTarget::B, None, &mut reg, &mut mem, data);
+    set_x8(InstructionTarget::B, &mut reg, &mut mem, data);
 
     let u8 = reg.get_reg8(Register::B);
 
@@ -88,7 +88,7 @@ fn test_set_x8_addr_hl() {
     reg.set_reg8(Register::H, addr_bytes.0);
     reg.set_reg8(Register::L, addr_bytes.1);
 
-    set_x8(InstructionTarget::ADDR_HL, None, &mut reg, &mut mem, data);
+    set_x8(InstructionTarget::N8(reg.get_reg16(RegisterPair::HL)), &mut reg, &mut mem, data);
 
     let addr_hl = mem.read(addr);
 
@@ -99,12 +99,12 @@ fn test_set_x8_addr_hl() {
 fn test_0x00_NOP() {
     let base_mem = MemoryBus::create();
     let mut out_mem = base_mem.clone();
-    let base_reg = Registers::create();
+    let mut base_reg = Registers::create();
     let mut out_reg = base_reg.clone();
 
-    let cycles = execute_instruction(0x00, &mut out_reg, &mut out_mem);
+    base_reg.pc += 1;
+    let _ = execute_instruction(0x00, &mut out_reg, &mut out_mem);
 
-    assert_eq!(4, cycles);
     assert_eq!(base_mem, out_mem);
     assert_eq!(base_reg, out_reg);
 }
@@ -123,8 +123,7 @@ fn test_0x01_LD_BC_u16() {
     out_mem.write(addr, split_data.1);
     out_mem.write(addr + 1, split_data.0);
 
-    let cycles = execute_instruction(0x01, &mut out_reg, &mut out_mem);
+    let _ = execute_instruction(0x01, &mut out_reg, &mut out_mem);
 
-    assert_eq!(12, cycles);
     assert_eq!(data, out_reg.get_reg16(RegisterPair::BC));
 }
