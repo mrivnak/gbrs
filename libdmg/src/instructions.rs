@@ -64,23 +64,35 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
 }
 
 pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) -> u8 {
-    let instruction = get_instruction(code, reg);
+    let instr = get_instruction(code, reg);
 
-    match instruction.operation {
+    match instr.operation {
         Operation::NOP => {}
         Operation::LD => {
-            todo!()
+            let src = instr.src.unwrap();
+            let dest = instr.dest.unwrap();
+            match instr.op_size {
+                Some(OpSize::EIGHT) => {
+                    let data = get_x8(src, instr.address, reg, mem);
+                    set_x8(dest, instr.address, reg, mem, data);
+                }
+                Some(OpSize::SIXTEEN) => {
+                    let data = get_x16(src, instr.address, reg, mem);
+                    set_x16(dest, instr.address, reg, mem, data);
+                }
+                _ => panic!("Unsupported instruction: '{code}' - Error: LD operation with no size specified"),
+            }
         }
     }
 
-    instruction.cycles
+    instr.cycles
 }
 
 fn get_x8(
     target: InstructionTarget,
     addr: Option<Address>,
     reg: &mut Registers,
-    mem: &mut MemoryBus,
+    mem: &mut MemoryBus
 ) -> u8 {
     match target {
         InstructionTarget::A => reg.get_reg8(Register::A),
@@ -100,7 +112,7 @@ fn get_x16(
     target: InstructionTarget,
     addr: Option<Address>,
     reg: &mut Registers,
-    mem: &mut MemoryBus,
+    mem: &mut MemoryBus
 ) -> u16 {
     match target {
         InstructionTarget::BC => reg.get_reg16(RegisterPair::BC),
@@ -109,6 +121,47 @@ fn get_x16(
         InstructionTarget::N16 => {
             let addr = addr.expect("Address is None for n16 get instruction");
             ((mem.read(addr + 1) as u16) << 8) | mem.read(addr) as u16
+        }
+        _ => panic!("Unsupported target for 16-bit value read"),
+    }
+}
+
+fn set_x8(
+    target: InstructionTarget,
+    addr: Option<Address>,
+    reg: &mut Registers,
+    mem: &mut MemoryBus,
+    value: u8
+) {
+    match target {
+        InstructionTarget::A => reg.set_reg8(Register::A, value),
+        InstructionTarget::B => reg.set_reg8(Register::B, value),
+        InstructionTarget::C => reg.set_reg8(Register::C, value),
+        InstructionTarget::D => reg.set_reg8(Register::D, value),
+        InstructionTarget::E => reg.set_reg8(Register::E, value),
+        InstructionTarget::H => reg.set_reg8(Register::H, value),
+        InstructionTarget::L => reg.set_reg8(Register::L, value),
+        InstructionTarget::N8 => mem.write(addr.expect("Address is None for n8 get instruction"), value),
+        InstructionTarget::ADDR_HL => mem.write(reg.get_reg16(RegisterPair::HL), value),
+        _ => panic!("Unsupported target for 8-bit value read"),
+    }
+}
+
+fn set_x16(
+    target: InstructionTarget,
+    addr: Option<Address>,
+    reg: &mut Registers,
+    mem: &mut MemoryBus,
+    value: u16
+) {
+    match target {
+        InstructionTarget::BC => reg.set_reg16(RegisterPair::BC, value),
+        InstructionTarget::DE => reg.set_reg16(RegisterPair::DE, value),
+        InstructionTarget::HL => reg.set_reg16(RegisterPair::HL, value),
+        InstructionTarget::N16 => {
+            let addr = addr.expect("Address is None for n16 get instruction");
+            mem.write(addr + 1, (value >> 8) as u8);
+            mem.write(addr, value as u8);
         }
         _ => panic!("Unsupported target for 16-bit value read"),
     }
