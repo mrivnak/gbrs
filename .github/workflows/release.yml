@@ -23,35 +23,35 @@ jobs:
         if: matrix.platform == 'macos-latest'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           target: aarch64-apple-darwin
 
       - name: Install Rust x86_64-apple-darwin
         if: matrix.platform == 'macos-latest'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           target: x86_64-apple-darwin
 
       # - name: Install Rust Linux aarch64-unknown-linux-gnu
       #   if: matrix.platform == 'ubuntu-latest'
       #   uses: actions-rs/toolchain@v1
       #   with:
-      #     toolchain: nightly
+      #     toolchain: stable
       #     target: aarch64-unknown-linux-gnu
 
       - name: Install Rust Linux x86_64-unknown-linux-gnu
         if: matrix.platform == 'ubuntu-latest'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           target: x86_64-unknown-linux-gnu
 
       - name: Install Rust Windows x86_64-pc-windows-msvc
         if: matrix.platform == 'windows-latest'
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           target: x86_64-pc-windows-msvc
 
       - name: Create releases directory
@@ -62,14 +62,14 @@ jobs:
         if: matrix.platform == 'macos-latest'
         run: |
           cargo build --release --target aarch64-apple-darwin
-          tar cvfJ ./release/RustBoy_${{ github.ref_name }}_macos_arm64.tar.xz ./target/aarch64-apple-darwin/release/rust_boy
+          tar cvfJ ./release/GB.rs_${{ github.ref_name }}_macos_arm64.tar.xz ./target/aarch64-apple-darwin/release/gbrs
 
 
       - name: Build macOS x86_64-apple-darwin
         if: matrix.platform == 'macos-latest'
         run: |
           cargo build --release --target x86_64-apple-darwin
-          tar cvfJ ./release/RustBoy_${{ github.ref_name }}_macos_amd64.tar.xz ./target/x86_64-apple-darwin/release/rust_boy
+          tar cvfJ ./release/GB.rs_${{ github.ref_name }}_macos_amd64.tar.xz ./target/x86_64-apple-darwin/release/gbrs
 
       # - name: Build Linux aarch64-unknown-linux-gnu
       #   if: matrix.platform == 'ubuntu-latest'
@@ -78,13 +78,13 @@ jobs:
         if: matrix.platform == 'ubuntu-latest'
         run: |
           cargo build --release --target x86_64-unknown-linux-gnu
-          tar cvfJ ./release/RustBoy_${{ github.ref_name }}_linux_amd64.tar.xz ./target/x86_64-unknown-linux-gnu/release/rust_boy
+          tar cvfJ ./release/GB.rs_${{ github.ref_name }}_linux_amd64.tar.xz ./target/x86_64-unknown-linux-gnu/release/gbrs
 
       - name: Build Windows x86_64-pc-windows-msvc
         if: matrix.platform == 'windows-latest'
         run: |
           cargo build --release --target x86_64-pc-windows-msvc
-          Compress-Archive -Path ./target/x86_64-pc-windows-msvc/release/rust_boy.exe -DestinationPath ./release/RustBoy_${{ github.ref_name }}_windows_amd64.zip
+          Compress-Archive -Path ./target/x86_64-pc-windows-msvc/release/gbrs.exe -DestinationPath ./release/GB.rs_${{ github.ref_name }}_windows_amd64.zip
 
 
       - name: Build Changelog

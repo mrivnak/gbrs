@@ -5,9 +5,11 @@ use winit::{
     window::WindowBuilder,
 };
 
-mod dmg;
+use libdmg::{cpu};
 
 pub fn main() {
+    env_logger::init();
+    
     // Get information from Cargo.toml
     const NAME: &'static str = env!("CARGO_PKG_NAME");
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -42,9 +44,8 @@ pub fn main() {
     let verbose = matches.is_present("verbose");
     let debug = matches.is_present("debug");
 
-    let cpu = dmg::cpu::CPU::create();
+    let cpu = cpu::CPU::create();
 
-    env_logger::init();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     window.set_title("RustBoy");
