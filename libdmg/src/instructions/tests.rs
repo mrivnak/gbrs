@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use crate::dmg::{registers::Registers, data::SplitByte};
+use crate::{registers::Registers, data::SplitByte};
 
 use super::*;
 
