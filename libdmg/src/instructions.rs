@@ -8,12 +8,10 @@ struct Instruction {
     src: Option<InstructionTarget>,
     dest: Option<InstructionTarget>,
     operation: Operation,
-    op_size: Option<OpSize>,
     cycles: u8,
     length: u8,
 }
 
-// 16 and 8-bit targets could be moved to a separate enum to have some compile-time checking of instructions
 #[allow(non_camel_case_types)]
 enum InstructionTarget {
     A,
@@ -40,13 +38,29 @@ enum OpSize {
     SIXTEEN,
 }
 
+fn get_op_size(target: &InstructionTarget) -> OpSize {
+    match target {
+        InstructionTarget::A => OpSize::EIGHT,
+        InstructionTarget::B => OpSize::EIGHT,
+        InstructionTarget::C => OpSize::EIGHT,
+        InstructionTarget::D => OpSize::EIGHT,
+        InstructionTarget::E => OpSize::EIGHT,
+        InstructionTarget::H => OpSize::EIGHT,
+        InstructionTarget::L => OpSize::EIGHT,
+        InstructionTarget::BC => OpSize::SIXTEEN,
+        InstructionTarget::DE => OpSize::SIXTEEN,
+        InstructionTarget::HL => OpSize::SIXTEEN,
+        InstructionTarget::N8(_) => OpSize::EIGHT,
+        InstructionTarget::N16(_) => OpSize::SIXTEEN,
+    }
+}
+
 fn get_instruction(code: u16, reg: &Registers) -> Instruction {
     match code {
         0x00 => Instruction { // NOP
             src: None,
             dest: None,
             operation: Operation::NOP,
-            op_size: None,
             cycles: 4,
             length: 1
         },
@@ -54,7 +68,6 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             src: Some(InstructionTarget::N16(reg.pc + 1)),
             dest: Some(InstructionTarget::BC),
             operation: Operation::LD,
-            op_size: Some(OpSize::SIXTEEN),
             cycles: 12,
             length: 3
         },
@@ -62,7 +75,6 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             src: Some(InstructionTarget::A),
             dest: Some(InstructionTarget::N8(reg.get_reg16(RegisterPair::BC))),
             operation: Operation::LD,
-            op_size: Some(OpSize::EIGHT),
             cycles: 4,
             length: 1
         },
@@ -78,16 +90,16 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
         Operation::LD => {
             let src = instr.src.unwrap();
             let dest = instr.dest.unwrap();
-            match instr.op_size {
-                Some(OpSize::EIGHT) => {
+            
+            match get_op_size(&src) {
+                OpSize::EIGHT => {
                     let data = get_x8(src, reg, mem);
                     set_x8(dest, reg, mem, data);
                 }
-                Some(OpSize::SIXTEEN) => {
+                OpSize::SIXTEEN => {
                     let data = get_x16(src, reg, mem);
                     set_x16(dest, reg, mem, data);
                 }
-                _ => panic!("Unsupported instruction: '{code}' - Error: LD operation with no size specified"),
             }
         }
     }

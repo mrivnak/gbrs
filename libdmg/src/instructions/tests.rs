@@ -111,19 +111,35 @@ fn test_0x00_NOP() {
 
 #[test]
 fn test_0x01_LD_BC_u16() {
-    let base_mem = MemoryBus::create();
-    let mut out_mem = base_mem.clone();
-    let base_reg = Registers::create();
-    let mut out_reg = base_reg.clone();
+    let mut mem = MemoryBus::create();
+    let mut reg = Registers::create();
 
     // Populate the memory with a test value
-    let addr = out_reg.pc + 1;
+    let addr = reg.pc + 1;
     let data: u16 = 0x1234;
     let split_data = (((data & 0xFF00) >> 8) as u8, (data & 0xFF) as u8);
-    out_mem.write(addr, split_data.1);
-    out_mem.write(addr + 1, split_data.0);
+    mem.write(addr, split_data.1);
+    mem.write(addr + 1, split_data.0);
 
-    let _ = execute_instruction(0x01, &mut out_reg, &mut out_mem);
+    let _ = execute_instruction(0x01, &mut reg, &mut mem);
 
-    assert_eq!(data, out_reg.get_reg16(RegisterPair::BC));
+    assert_eq!(data, reg.get_reg16(RegisterPair::BC));
+}
+
+#[test]
+fn test_0x02_LD_BC_A() {
+    let mut mem = MemoryBus::create();
+    let mut reg = Registers::create();
+
+    let data: u8 = 0x12;
+    reg.set_reg8(Register::A, data);
+
+    let addr: Address = 0x1122;
+    let split_addr = addr.split_byte();
+    reg.set_reg8(Register::B, split_addr.0);
+    reg.set_reg8(Register::C, split_addr.1);
+
+    let _ = execute_instruction(0x02, &mut reg, &mut mem);
+
+    assert_eq!(data, mem.read(addr));
 }
