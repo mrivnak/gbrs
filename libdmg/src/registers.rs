@@ -122,36 +122,22 @@ impl Registers {
         }
     }
 
-    pub fn get_zero(&self) -> bool {
-        self.flags.zero
+    pub fn get_flag(&self, flag: Flag) -> bool {
+        match flag {
+            Flag::Zero => self.flags.zero,
+            Flag::Subtract => self.flags.subtract,
+            Flag::HalfCarry => self.flags.half_carry,
+            Flag::Carry => self.flags.carry,
+        }
     }
 
-    pub fn get_subtract(&self) -> bool {
-        self.flags.subtract
-    }
-
-    pub fn get_half_carry(&self) -> bool {
-        self.flags.half_carry
-    }
-
-    pub fn get_carry(&self) -> bool {
-        self.flags.carry
-    }
-
-    pub fn set_zero(&mut self, value: bool) {
-        self.flags.zero = value;
-    }
-
-    pub fn set_subtract(&mut self, value: bool) {
-        self.flags.subtract = value;
-    }
-
-    pub fn set_half_carry(&mut self, value: bool) {
-        self.flags.half_carry = value;
-    }
-
-    pub fn set_carry(&mut self, value: bool) {
-        self.flags.carry = value;
+    pub fn set_flag(&mut self, flag: Flag, value: bool) {
+        match flag {
+            Flag::Zero => self.flags.zero = value,
+            Flag::Subtract => self.flags.subtract = value,
+            Flag::HalfCarry => self.flags.half_carry = value,
+            Flag::Carry => self.flags.carry = value,
+        }
     }
 
     pub fn get_flags(&mut self) -> u8 {
@@ -177,6 +163,13 @@ pub enum RegisterPair {
     BC,
     DE,
     HL,
+}
+
+pub enum Flag {
+    Zero,
+    Subtract,
+    HalfCarry,
+    Carry,
 }
 
 #[cfg(test)]
@@ -319,7 +312,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        let result = reg.get_zero();
+        let result = reg.get_flag(Flag::Zero);
 
         assert!(result);
     }
@@ -344,7 +337,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        let result = reg.get_subtract();
+        let result = reg.get_flag(Flag::Subtract);
 
         assert!(result);
     }
@@ -369,7 +362,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        let result = reg.get_half_carry();
+        let result = reg.get_flag(Flag::HalfCarry);
 
         assert!(result);
     }
@@ -394,7 +387,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        let result = reg.get_carry();
+        let result = reg.get_flag(Flag::Carry);
 
         assert!(result);
     }
@@ -419,7 +412,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        reg.set_zero(true);
+        reg.set_flag(Flag::Zero, true);
 
         assert!(reg.flags.zero);
     }
@@ -444,7 +437,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        reg.set_subtract(true);
+        reg.set_flag(Flag::Subtract, true);
 
         assert!(reg.flags.subtract);
     }
@@ -469,7 +462,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        reg.set_half_carry(true);
+        reg.set_flag(Flag::HalfCarry, true);
 
         assert!(reg.flags.half_carry);
     }
@@ -494,7 +487,7 @@ mod tests {
             sp: 0x0000,
         };
 
-        reg.set_carry(true);
+        reg.set_flag(Flag::Carry, true);
 
         assert!(reg.flags.carry);
     }
