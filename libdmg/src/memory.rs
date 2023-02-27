@@ -11,7 +11,9 @@ pub struct MemoryBus {
 
 impl MemoryBus {
     pub fn create() -> MemoryBus {
-        MemoryBus { memory: vec![0; MEM_SIZE]}
+        MemoryBus {
+            memory: vec![0; MEM_SIZE],
+        }
     }
 
     pub fn write(&mut self, addr: Address, data: u8) {

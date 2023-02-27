@@ -5,11 +5,11 @@ use winit::{
     window::WindowBuilder,
 };
 
-use libdmg::{cpu};
+use libdmg::cpu;
 
 pub fn main() {
     env_logger::init();
-    
+
     // Get information from Cargo.toml
     const NAME: &'static str = env!("CARGO_PKG_NAME");
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");

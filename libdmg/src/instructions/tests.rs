@@ -1,22 +1,25 @@
-use crate::{registers::{Flag, Registers}, data::SplitByte};
+use crate::{
+    data::SplitByte,
+    registers::{Flag, Registers},
+};
 
 use super::*;
 
 #[test]
-fn test_modify_flags () {
+fn test_modify_flags() {
     let mut reg = Registers::create();
 
     let instr = FlagInstruction {
-        Zero: FlagOperation::Dependent,
-        Subtract: FlagOperation::Unset,
-        HalfCarry: FlagOperation::Dependent,
-        Carry: FlagOperation::Unmodified,
+        zero: FlagOperation::Dependent,
+        subtract: FlagOperation::Unset,
+        half_carry: FlagOperation::Dependent,
+        carry: FlagOperation::Unmodified,
     };
     let results = FlagResults {
-        Zero: Some(FlagResult::Unset),
-        Subtract: Some(FlagResult::Unset),
-        HalfCarry: Some(FlagResult::Set),
-        Carry: None,
+        zero: Some(FlagResult::Unset),
+        subtract: Some(FlagResult::Unset),
+        half_carry: Some(FlagResult::Set),
+        carry: None,
     };
 
     reg.set_flag(Flag::Zero, true);
@@ -65,12 +68,16 @@ fn test_get_x8_addr_from_reg() {
     let addr: Address = 0x0000;
     let addr_bytes = addr.split_byte();
     let data = 0xAA;
-    
+
     reg.set_reg8(Register::H, addr_bytes.1);
     reg.set_reg8(Register::L, addr_bytes.0);
     mem.write(addr, data);
 
-    let addr_hl = get_x8(&InstructionTarget::N8(reg.get_reg16(RegisterPair::HL)), &mut reg, &mut mem);
+    let addr_hl = get_x8(
+        &InstructionTarget::N8(reg.get_reg16(RegisterPair::HL)),
+        &mut reg,
+        &mut mem,
+    );
 
     assert_eq!(data, addr_hl);
 }
@@ -112,11 +119,16 @@ fn test_set_x8_addr_from_reg() {
     let addr: Address = 0x0000;
     let addr_bytes = addr.split_byte();
     let data = 0xAA;
-    
+
     reg.set_reg8(Register::H, addr_bytes.0);
     reg.set_reg8(Register::L, addr_bytes.1);
 
-    set_x8(&InstructionTarget::N8(reg.get_reg16(RegisterPair::HL)), &mut reg, &mut mem, data);
+    set_x8(
+        &InstructionTarget::N8(reg.get_reg16(RegisterPair::HL)),
+        &mut reg,
+        &mut mem,
+        data,
+    );
 
     let addr_hl = mem.read(addr);
 

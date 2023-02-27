@@ -15,17 +15,17 @@ struct Instruction {
 }
 
 struct FlagInstruction {
-    Zero: FlagOperation,
-    Subtract: FlagOperation,
-    HalfCarry: FlagOperation,
-    Carry: FlagOperation,
+    zero: FlagOperation,
+    subtract: FlagOperation,
+    half_carry: FlagOperation,
+    carry: FlagOperation,
 }
 
 struct FlagResults {
-    Zero: Option<FlagResult>,
-    Subtract: Option<FlagResult>,
-    HalfCarry: Option<FlagResult>,
-    Carry: Option<FlagResult>,
+    zero: Option<FlagResult>,
+    subtract: Option<FlagResult>,
+    half_carry: Option<FlagResult>,
+    carry: Option<FlagResult>,
 }
 
 #[allow(non_camel_case_types)]
@@ -95,10 +95,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 4,
             length: 1,
             flags: FlagInstruction {
-                Zero: FlagOperation::Unmodified,
-                Subtract: FlagOperation::Unmodified,
-                HalfCarry: FlagOperation::Unmodified,
-                Carry: FlagOperation::Unmodified,
+                zero: FlagOperation::Unmodified,
+                subtract: FlagOperation::Unmodified,
+                half_carry: FlagOperation::Unmodified,
+                carry: FlagOperation::Unmodified,
             },
         },
         0x01 => Instruction {
@@ -109,10 +109,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 12,
             length: 3,
             flags: FlagInstruction {
-                Zero: FlagOperation::Unmodified,
-                Subtract: FlagOperation::Unmodified,
-                HalfCarry: FlagOperation::Unmodified,
-                Carry: FlagOperation::Unmodified,
+                zero: FlagOperation::Unmodified,
+                subtract: FlagOperation::Unmodified,
+                half_carry: FlagOperation::Unmodified,
+                carry: FlagOperation::Unmodified,
             },
         },
         0x02 => Instruction {
@@ -123,10 +123,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 4,
             length: 1,
             flags: FlagInstruction {
-                Zero: FlagOperation::Unmodified,
-                Subtract: FlagOperation::Unmodified,
-                HalfCarry: FlagOperation::Unmodified,
-                Carry: FlagOperation::Unmodified,
+                zero: FlagOperation::Unmodified,
+                subtract: FlagOperation::Unmodified,
+                half_carry: FlagOperation::Unmodified,
+                carry: FlagOperation::Unmodified,
             },
         },
         0x03 => Instruction {
@@ -137,10 +137,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 8,
             length: 1,
             flags: FlagInstruction {
-                Zero: FlagOperation::Unmodified,
-                Subtract: FlagOperation::Unmodified,
-                HalfCarry: FlagOperation::Unmodified,
-                Carry: FlagOperation::Unmodified,
+                zero: FlagOperation::Unmodified,
+                subtract: FlagOperation::Unmodified,
+                half_carry: FlagOperation::Unmodified,
+                carry: FlagOperation::Unmodified,
             },
         },
         0x04 => Instruction {
@@ -151,10 +151,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 4,
             length: 1,
             flags: FlagInstruction {
-                Zero: FlagOperation::Dependent,
-                Subtract: FlagOperation::Unset,
-                HalfCarry: FlagOperation::Dependent,
-                Carry: FlagOperation::Unmodified,
+                zero: FlagOperation::Dependent,
+                subtract: FlagOperation::Unset,
+                half_carry: FlagOperation::Dependent,
+                carry: FlagOperation::Unmodified,
             },
         },
         0x05 => Instruction {
@@ -165,10 +165,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 4,
             length: 1,
             flags: FlagInstruction {
-                Zero: FlagOperation::Dependent,
-                Subtract: FlagOperation::Set,
-                HalfCarry: FlagOperation::Dependent,
-                Carry: FlagOperation::Unmodified,
+                zero: FlagOperation::Dependent,
+                subtract: FlagOperation::Set,
+                half_carry: FlagOperation::Dependent,
+                carry: FlagOperation::Unmodified,
             },
         },
         _ => panic!("Unsupported instruction: {code}"),
@@ -198,18 +198,18 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
         Operation::INC => {
             let target = instr.target.unwrap();
             let mut results = FlagResults {
-                Zero: None,
-                Subtract: None,
-                HalfCarry: None,
-                Carry: None,
+                zero: None,
+                subtract: None,
+                half_carry: None,
+                carry: None,
             };
 
             match get_op_size(&target) {
                 InstructionSize::Eight => {
                     let value = get_x8(&target, reg, mem);
                     set_x8(&target, reg, mem, value + 1);
-                    results.Zero = Some(FlagResult::Unset);
-                    results.HalfCarry =
+                    results.zero = Some(FlagResult::Unset);
+                    results.half_carry =
                         Some(match check_half_carry8(ArithmeticMode::Add, value, 1) {
                             true => FlagResult::Set,
                             false => FlagResult::Unset,
@@ -218,8 +218,8 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                 InstructionSize::Sixteen => {
                     let value = get_x16(&target, reg, mem);
                     set_x16(&target, reg, mem, value + 1);
-                    results.Zero = Some(FlagResult::Unset);
-                    results.HalfCarry =
+                    results.zero = Some(FlagResult::Unset);
+                    results.half_carry =
                         Some(match check_half_carry16(ArithmeticMode::Add, value, 1) {
                             true => FlagResult::Set,
                             false => FlagResult::Unset,
@@ -232,10 +232,10 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
         Operation::DEC => {
             let target = instr.target.unwrap();
             let mut results = FlagResults {
-                Zero: None,
-                Subtract: None,
-                HalfCarry: None,
-                Carry: None,
+                zero: None,
+                subtract: None,
+                half_carry: None,
+                carry: None,
             };
 
             match get_op_size(&target) {
@@ -243,27 +243,30 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                     let value = get_x8(&target, reg, mem);
                     // TODO: check for integer overflow
                     set_x8(&target, reg, mem, value - 1);
-                    results.Zero = Some(match value - 1 {
+                    results.zero = Some(match value - 1 {
                         0 => FlagResult::Set,
                         _ => FlagResult::Unset,
                     });
-                    results.HalfCarry = Some(match check_half_carry8(ArithmeticMode::Subtract, value, 1) {
-                        true => FlagResult::Set,
-                        false => FlagResult::Unset,
-                    });
+                    results.half_carry = Some(
+                        match check_half_carry8(ArithmeticMode::Subtract, value, 1) {
+                            true => FlagResult::Set,
+                            false => FlagResult::Unset,
+                        },
+                    );
                 }
                 InstructionSize::Sixteen => {
                     let value = get_x16(&target, reg, mem);
                     set_x16(&target, reg, mem, value - 1);
-                    results.Zero = Some(match value - 1 {
+                    results.zero = Some(match value - 1 {
                         0 => FlagResult::Set,
                         _ => FlagResult::Unset,
                     });
-                    results.HalfCarry =
-                        Some(match check_half_carry16(ArithmeticMode::Subtract, value, 1) {
+                    results.half_carry = Some(
+                        match check_half_carry16(ArithmeticMode::Subtract, value, 1) {
                             true => FlagResult::Set,
                             false => FlagResult::Unset,
-                        });
+                        },
+                    );
                 }
             }
 
@@ -278,7 +281,7 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
 }
 
 fn modify_flags(reg: &mut Registers, instr: FlagInstruction, results: FlagResults) {
-    let zero = match (instr.Zero, results.Zero) {
+    let zero = match (instr.zero, results.zero) {
         (FlagOperation::Dependent, Some(FlagResult::Set)) => Some(true),
         (FlagOperation::Dependent, Some(FlagResult::Unset)) => Some(false),
         (FlagOperation::Dependent, None) => panic!("Dependent flag not provided result"),
@@ -291,7 +294,7 @@ fn modify_flags(reg: &mut Registers, instr: FlagInstruction, results: FlagResult
         None => {}
     }
 
-    let subtract = match (instr.Subtract, results.Subtract) {
+    let subtract = match (instr.subtract, results.subtract) {
         (FlagOperation::Dependent, Some(FlagResult::Set)) => Some(true),
         (FlagOperation::Dependent, Some(FlagResult::Unset)) => Some(false),
         (FlagOperation::Dependent, None) => panic!("Dependent flag not provided result"),
@@ -304,7 +307,7 @@ fn modify_flags(reg: &mut Registers, instr: FlagInstruction, results: FlagResult
         None => {}
     }
 
-    let half_carry = match (instr.HalfCarry, results.HalfCarry) {
+    let half_carry = match (instr.half_carry, results.half_carry) {
         (FlagOperation::Dependent, Some(FlagResult::Set)) => Some(true),
         (FlagOperation::Dependent, Some(FlagResult::Unset)) => Some(false),
         (FlagOperation::Dependent, None) => panic!("Dependent flag not provided result"),
@@ -317,7 +320,7 @@ fn modify_flags(reg: &mut Registers, instr: FlagInstruction, results: FlagResult
         None => {}
     }
 
-    let carry = match (instr.Carry, results.Carry) {
+    let carry = match (instr.carry, results.carry) {
         (FlagOperation::Dependent, Some(FlagResult::Set)) => Some(true),
         (FlagOperation::Dependent, Some(FlagResult::Unset)) => Some(false),
         (FlagOperation::Dependent, None) => panic!("Dependent flag not provided result"),
