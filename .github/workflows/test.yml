@@ -2,8 +2,6 @@ name: Run Unit Tests
 
 on:
   push:
-   branches:
-     - main
 
 jobs:
   cargo-test:
