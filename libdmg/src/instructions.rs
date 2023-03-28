@@ -14,6 +14,7 @@ struct Instruction {
     flags: FlagInstruction,
 }
 
+#[derive(Default)]
 struct FlagInstruction {
     zero: FlagOperation,
     subtract: FlagOperation,
@@ -21,6 +22,7 @@ struct FlagInstruction {
     carry: FlagOperation,
 }
 
+#[derive(Default)]
 struct FlagResults {
     zero: Option<FlagResult>,
     subtract: Option<FlagResult>,
@@ -28,7 +30,22 @@ struct FlagResults {
     carry: Option<FlagResult>,
 }
 
+#[derive(Default)]
+enum FlagOperation {
+    #[default]
+    Unmodified,
+    Dependent,
+    Set,
+    Unset,
+}
+
+enum FlagResult {
+    Set,
+    Unset,
+}
+
 #[allow(non_camel_case_types)]
+#[derive(Debug)]
 enum InstructionTarget {
     A,
     B,
@@ -49,18 +66,12 @@ enum Operation {
     LD,
     INC,
     DEC,
+    RXC(Direction),
 }
 
-enum FlagOperation {
-    Unmodified,
-    Dependent,
-    Set,
-    Unset,
-}
-
-enum FlagResult {
-    Set,
-    Unset,
+enum Direction {
+    Left,
+    Right,
 }
 
 enum InstructionSize {
@@ -85,6 +96,31 @@ fn get_op_size(target: &InstructionTarget) -> InstructionSize {
     }
 }
 
+fn target_to_register(target: InstructionTarget) -> Register {
+    match target {
+        InstructionTarget::A => Register::A,
+        InstructionTarget::B => Register::B,
+        InstructionTarget::C => Register::C,
+        InstructionTarget::D => Register::D,
+        InstructionTarget::E => Register::E,
+        InstructionTarget::H => Register::H,
+        InstructionTarget::L => Register::L,
+        _ => panic!("Invalid target: {:?}, cannot convert to register", target),
+    }
+}
+
+fn target_to_register_pair(target: InstructionTarget) -> RegisterPair {
+    match target {
+        InstructionTarget::BC => RegisterPair::BC,
+        InstructionTarget::DE => RegisterPair::DE,
+        InstructionTarget::HL => RegisterPair::HL,
+        _ => panic!(
+            "Invalid target: {:?}, cannot convert to register pair",
+            target
+        ),
+    }
+}
+
 fn get_instruction(code: u16, reg: &Registers) -> Instruction {
     match code {
         0x00 => Instruction {
@@ -94,12 +130,7 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             operation: Operation::NOP,
             cycles: 4,
             length: 1,
-            flags: FlagInstruction {
-                zero: FlagOperation::Unmodified,
-                subtract: FlagOperation::Unmodified,
-                half_carry: FlagOperation::Unmodified,
-                carry: FlagOperation::Unmodified,
-            },
+            flags: FlagInstruction::default(),
         },
         0x01 => Instruction {
             // LD BC, u16
@@ -108,12 +139,7 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             operation: Operation::LD,
             cycles: 12,
             length: 3,
-            flags: FlagInstruction {
-                zero: FlagOperation::Unmodified,
-                subtract: FlagOperation::Unmodified,
-                half_carry: FlagOperation::Unmodified,
-                carry: FlagOperation::Unmodified,
-            },
+            flags: FlagInstruction::default(),
         },
         0x02 => Instruction {
             // LD (BC), A
@@ -122,12 +148,7 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             operation: Operation::LD,
             cycles: 4,
             length: 1,
-            flags: FlagInstruction {
-                zero: FlagOperation::Unmodified,
-                subtract: FlagOperation::Unmodified,
-                half_carry: FlagOperation::Unmodified,
-                carry: FlagOperation::Unmodified,
-            },
+            flags: FlagInstruction::default(),
         },
         0x03 => Instruction {
             // INC BC
@@ -136,12 +157,7 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             operation: Operation::INC,
             cycles: 8,
             length: 1,
-            flags: FlagInstruction {
-                zero: FlagOperation::Unmodified,
-                subtract: FlagOperation::Unmodified,
-                half_carry: FlagOperation::Unmodified,
-                carry: FlagOperation::Unmodified,
-            },
+            flags: FlagInstruction::default(),
         },
         0x04 => Instruction {
             // INC B
@@ -154,7 +170,7 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
                 zero: FlagOperation::Dependent,
                 subtract: FlagOperation::Unset,
                 half_carry: FlagOperation::Dependent,
-                carry: FlagOperation::Unmodified,
+                ..Default::default()
             },
         },
         0x05 => Instruction {
@@ -168,7 +184,28 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
                 zero: FlagOperation::Dependent,
                 subtract: FlagOperation::Set,
                 half_carry: FlagOperation::Dependent,
-                carry: FlagOperation::Unmodified,
+                ..Default::default()
+            },
+        },
+        0x06 => Instruction {
+            // LD B, u8
+            source: Some(InstructionTarget::N8(reg.pc + 1)),
+            target: Some(InstructionTarget::B),
+            operation: Operation::LD,
+            cycles: 8,
+            length: 2,
+            flags: FlagInstruction::default(),
+        },
+        0x07 => Instruction {
+            // RLCA
+            source: None,
+            target: Some(InstructionTarget::A),
+            operation: Operation::RXC(Direction::Left),
+            cycles: 4,
+            length: 1,
+            flags: FlagInstruction {
+                carry: FlagOperation::Dependent,
+                ..Default::default()
             },
         },
         _ => panic!("Unsupported instruction: {code}"),
@@ -197,12 +234,7 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
         }
         Operation::INC => {
             let target = instr.target.unwrap();
-            let mut results = FlagResults {
-                zero: None,
-                subtract: None,
-                half_carry: None,
-                carry: None,
-            };
+            let mut results = FlagResults::default();
 
             match get_op_size(&target) {
                 InstructionSize::Eight => {
@@ -231,12 +263,7 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
         }
         Operation::DEC => {
             let target = instr.target.unwrap();
-            let mut results = FlagResults {
-                zero: None,
-                subtract: None,
-                half_carry: None,
-                carry: None,
-            };
+            let mut results = FlagResults::default();
 
             match get_op_size(&target) {
                 InstructionSize::Eight => {
@@ -267,6 +294,29 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                             false => FlagResult::Unset,
                         },
                     );
+                }
+            }
+
+            modify_flags(reg, instr.flags, results)
+        }
+        Operation::RXC(direction) => {
+            let mut results = FlagResults::default();
+            match direction {
+                Direction::Left => {
+                    let register = target_to_register(instr.target.expect("No target provided"));
+                    let value = reg.get_reg8(register.clone());
+                    let bit7 = (value & 0x80) >> 7;
+
+                    reg.set_reg8(register, (value << 1) + bit7);
+
+                    results.carry = Some(match bit7 {
+                        0 => FlagResult::Unset,
+                        1 => FlagResult::Set,
+                        _ => unreachable!(),
+                    });
+                }
+                Direction::Right => {
+                    todo!("RRC Not implemented");
                 }
             }
 

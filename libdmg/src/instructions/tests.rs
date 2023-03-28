@@ -263,3 +263,31 @@ fn test_0x05_DEC_B() {
     assert_eq!(false, reg.get_flag(Flag::HalfCarry));
     assert_eq!(false, reg.get_flag(Flag::Carry));
 }
+
+#[test]
+fn test_0x06_LD_B_u8() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0x12;
+    mem.write(reg.pc + 1, data);
+
+    let _ = execute_instruction(0x06, &mut reg, &mut mem);
+
+    assert_eq!(data, reg.get_reg8(Register::B));
+}
+
+#[test]
+fn test_0x07_RLCA() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0b1011_1010;
+    let expected = 0b0111_0101;
+    reg.set_reg8(Register::A, data);
+
+    let _ = execute_instruction(0x07, &mut reg, &mut mem);
+
+    assert_eq!(expected, reg.get_reg8(Register::A));
+    assert_eq!(true, reg.get_flag(Flag::Carry));
+}

@@ -36,6 +36,13 @@ impl std::convert::From<u8> for FlagsRegister {
     }
 }
 
+pub enum Flag {
+    Zero,
+    Subtract,
+    HalfCarry,
+    Carry,
+}
+
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Registers {
     a: u8,
@@ -129,6 +136,7 @@ impl Registers {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum Register {
     A,
     B,
@@ -139,17 +147,12 @@ pub enum Register {
     H,
     L,
 }
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum RegisterPair {
     BC,
     DE,
     HL,
-}
-
-pub enum Flag {
-    Zero,
-    Subtract,
-    HalfCarry,
-    Carry,
 }
 
 #[cfg(test)]
