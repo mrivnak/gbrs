@@ -23,7 +23,7 @@ At the moment GB.rs only supports running from the command line
 
 ### Dependencies
 
-- Rust >= 1.56.0
+- Rust >= 1.62.1
 
 ### Building
 
