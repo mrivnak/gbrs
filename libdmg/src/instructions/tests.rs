@@ -7,7 +7,7 @@ use super::*;
 
 #[test]
 fn test_modify_flags() {
-    let mut reg = Registers::create();
+    let mut reg = Registers::default();
 
     let instr = FlagInstruction {
         zero: FlagOperation::Dependent,
@@ -35,8 +35,8 @@ fn test_modify_flags() {
 
 #[test]
 fn test_get_x8_n8() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let addr = 0x0000;
     let data = 0xAA;
@@ -49,8 +49,8 @@ fn test_get_x8_n8() {
 
 #[test]
 fn test_get_x8_reg() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let data = 0xAA;
     reg.set_reg8(Register::B, data);
@@ -62,8 +62,8 @@ fn test_get_x8_reg() {
 
 #[test]
 fn test_get_x8_addr_from_reg() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let addr: Address = 0x0000;
     let addr_bytes = addr.split_byte();
@@ -84,8 +84,8 @@ fn test_get_x8_addr_from_reg() {
 
 #[test]
 fn test_set_x8_n8() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let addr = 0x0000;
     let data = 0xAA;
@@ -99,8 +99,8 @@ fn test_set_x8_n8() {
 
 #[test]
 fn test_set_x8_reg() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let data = 0xAA;
 
@@ -113,8 +113,8 @@ fn test_set_x8_reg() {
 
 #[test]
 fn test_set_x8_addr_from_reg() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let addr: Address = 0x0000;
     let addr_bytes = addr.split_byte();
@@ -137,9 +137,9 @@ fn test_set_x8_addr_from_reg() {
 
 #[test]
 fn test_0x00_NOP() {
-    let base_mem = MemoryBus::create();
+    let base_mem = MemoryBus::default();
     let mut out_mem = base_mem.clone();
-    let mut base_reg = Registers::create();
+    let mut base_reg = Registers::default();
     let mut out_reg = base_reg.clone();
 
     base_reg.pc += 1;
@@ -151,8 +151,8 @@ fn test_0x00_NOP() {
 
 #[test]
 fn test_0x01_LD_BC_u16() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     // Populate the memory with a test value
     let addr = reg.pc + 1;
@@ -168,8 +168,8 @@ fn test_0x01_LD_BC_u16() {
 
 #[test]
 fn test_0x02_LD_BC_A() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let data: u8 = 0x12;
     reg.set_reg8(Register::A, data);
@@ -186,8 +186,8 @@ fn test_0x02_LD_BC_A() {
 
 #[test]
 fn test_0x03_INC_BC() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let data = 0x1234;
     reg.set_reg16(RegisterPair::BC, data);
@@ -199,8 +199,8 @@ fn test_0x03_INC_BC() {
 
 #[test]
 fn test_0x04_INC_B() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let data = 0x12;
     reg.set_reg8(Register::B, data);
@@ -227,8 +227,8 @@ fn test_0x04_INC_B() {
 
 #[test]
 fn test_0x05_DEC_B() {
-    let mut mem = MemoryBus::create();
-    let mut reg = Registers::create();
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
 
     let data = 0x20;
     reg.set_reg8(Register::B, data);

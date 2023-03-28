@@ -44,7 +44,7 @@ pub fn main() {
     let verbose = matches.is_present("verbose");
     let debug = matches.is_present("debug");
 
-    let cpu = cpu::CPU::create();
+    let cpu = cpu::CPU::default();
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();

@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
 struct FlagsRegister {
     zero: bool,
     subtract: bool,
@@ -36,7 +36,7 @@ impl std::convert::From<u8> for FlagsRegister {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Registers {
     a: u8,
     b: u8,
@@ -51,26 +51,6 @@ pub struct Registers {
 }
 
 impl Registers {
-    pub fn create() -> Registers {
-        Registers {
-            a: 0x00,
-            b: 0x00,
-            c: 0x00,
-            d: 0x00,
-            e: 0x00,
-            h: 0x00,
-            l: 0x00,
-            flags: FlagsRegister {
-                zero: false,
-                subtract: false,
-                half_carry: false,
-                carry: false,
-            },
-            pc: 0x0000,
-            sp: 0x0000,
-        }
-    }
-
     pub fn get_reg8(&self, reg: Register) -> u8 {
         match reg {
             Register::A => self.a,

@@ -10,12 +10,6 @@ pub struct MemoryBus {
 }
 
 impl MemoryBus {
-    pub fn create() -> MemoryBus {
-        MemoryBus {
-            memory: vec![0; MEM_SIZE],
-        }
-    }
-
     pub fn write(&mut self, addr: Address, data: u8) {
         self.memory[addr as usize] = data;
     }
@@ -25,13 +19,21 @@ impl MemoryBus {
     }
 }
 
+impl Default for MemoryBus {
+    fn default() -> MemoryBus {
+        MemoryBus {
+            memory: vec![0; MEM_SIZE],
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_write() {
-        let mut mem = MemoryBus::create();
+        let mut mem = MemoryBus::default();
 
         let addresses = vec![0x0000, 0x00FF, 0xFFFF];
         let values = vec![0x0F, 0xF0, 0xAA];
@@ -46,7 +48,7 @@ mod tests {
 
     #[test]
     fn test_read() {
-        let mut mem = MemoryBus::create();
+        let mut mem = MemoryBus::default();
 
         let addresses = vec![0x0000, 0x00FF, 0xFFFF];
         let values = vec![0x0F, 0xF0, 0xAA];
