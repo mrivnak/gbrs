@@ -286,8 +286,15 @@ fn test_0x07_RLCA() {
     let expected = 0b0111_0101;
     reg.set_reg8(Register::A, data);
 
+    reg.set_flag(Flag::Zero, true);
+    reg.set_flag(Flag::Subtract, true);
+    reg.set_flag(Flag::HalfCarry, true);
+
     let _ = execute_instruction(0x07, &mut reg, &mut mem);
 
     assert_eq!(expected, reg.get_reg8(Register::A));
+    assert_eq!(false, reg.get_flag(Flag::Zero));
+    assert_eq!(false, reg.get_flag(Flag::Subtract));
+    assert_eq!(false, reg.get_flag(Flag::HalfCarry));
     assert_eq!(true, reg.get_flag(Flag::Carry));
 }

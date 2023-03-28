@@ -204,8 +204,10 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
             cycles: 4,
             length: 1,
             flags: FlagInstruction {
+                zero: FlagOperation::Unset,
+                subtract: FlagOperation::Unset,
+                half_carry: FlagOperation::Unset,
                 carry: FlagOperation::Dependent,
-                ..Default::default()
             },
         },
         _ => panic!("Unsupported instruction: {code}"),
