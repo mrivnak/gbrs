@@ -57,8 +57,10 @@ enum InstructionTarget {
     BC,
     DE,
     HL,
+    SP,
     N8(Address),
     N16(Address),
+    Ref(Box<InstructionTarget>),
 }
 
 enum Operation {
@@ -66,6 +68,7 @@ enum Operation {
     LD,
     INC,
     DEC,
+    ADD,
     RXC(Direction),
 }
 
@@ -79,20 +82,22 @@ enum InstructionSize {
     Sixteen,
 }
 
-fn get_op_size(target: &InstructionTarget) -> InstructionSize {
+fn get_op_size(target: &InstructionTarget) -> Option<InstructionSize> {
     match target {
-        InstructionTarget::A => InstructionSize::Eight,
-        InstructionTarget::B => InstructionSize::Eight,
-        InstructionTarget::C => InstructionSize::Eight,
-        InstructionTarget::D => InstructionSize::Eight,
-        InstructionTarget::E => InstructionSize::Eight,
-        InstructionTarget::H => InstructionSize::Eight,
-        InstructionTarget::L => InstructionSize::Eight,
-        InstructionTarget::BC => InstructionSize::Sixteen,
-        InstructionTarget::DE => InstructionSize::Sixteen,
-        InstructionTarget::HL => InstructionSize::Sixteen,
-        InstructionTarget::N8(_) => InstructionSize::Eight,
-        InstructionTarget::N16(_) => InstructionSize::Sixteen,
+        InstructionTarget::A => Some(InstructionSize::Eight),
+        InstructionTarget::B => Some(InstructionSize::Eight),
+        InstructionTarget::C => Some(InstructionSize::Eight),
+        InstructionTarget::D => Some(InstructionSize::Eight),
+        InstructionTarget::E => Some(InstructionSize::Eight),
+        InstructionTarget::H => Some(InstructionSize::Eight),
+        InstructionTarget::L => Some(InstructionSize::Eight),
+        InstructionTarget::BC => Some(InstructionSize::Sixteen),
+        InstructionTarget::DE => Some(InstructionSize::Sixteen),
+        InstructionTarget::HL => Some(InstructionSize::Sixteen),
+        InstructionTarget::SP => Some(InstructionSize::Sixteen),
+        InstructionTarget::N8(_) => Some(InstructionSize::Eight),
+        InstructionTarget::N16(_) => Some(InstructionSize::Sixteen),
+        InstructionTarget::Ref(_) => None,
     }
 }
 
@@ -144,7 +149,7 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
         0x02 => Instruction {
             // LD (BC), A
             source: Some(InstructionTarget::A),
-            target: Some(InstructionTarget::N8(reg.get_reg16(RegisterPair::BC))),
+            target: Some(InstructionTarget::Ref(Box::new(InstructionTarget::BC))),
             operation: Operation::LD,
             cycles: 4,
             length: 1,
@@ -210,7 +215,32 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
                 carry: FlagOperation::Dependent,
             },
         },
-        _ => panic!("Unsupported instruction: {code}"),
+        0x08 => Instruction {
+            // LD (u16), SP
+            source: Some(InstructionTarget::SP),
+            target: Some(InstructionTarget::Ref(Box::new(InstructionTarget::N16(
+                reg.pc + 1,
+            )))),
+            operation: Operation::LD,
+            cycles: 20,
+            length: 3,
+            flags: FlagInstruction::default(),
+        },
+        0x09 => Instruction {
+            // ADD HL, BC
+            source: Some(InstructionTarget::BC),
+            target: Some(InstructionTarget::HL),
+            operation: Operation::ADD,
+            cycles: 8,
+            length: 1,
+            flags: FlagInstruction {
+                subtract: FlagOperation::Unset,
+                half_carry: FlagOperation::Dependent,
+                carry: FlagOperation::Dependent,
+                ..Default::default()
+            },
+        },
+        _ => panic!("Unsupported instruction: {:#X}", code),
     }
 }
 
@@ -223,7 +253,14 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
             let source = instr.source.unwrap();
             let target = instr.target.unwrap();
 
-            match get_op_size(&source) {
+            let op_size;
+            if get_op_size(&source).is_some() {
+                op_size = get_op_size(&source).unwrap();
+            } else {
+                op_size = get_op_size(&target).expect("Cannot determine instruction size");
+            }
+
+            match op_size {
                 InstructionSize::Eight => {
                     let value = get_x8(&source, reg, mem);
                     set_x8(&target, reg, mem, value);
@@ -238,10 +275,10 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
             let target = instr.target.unwrap();
             let mut results = FlagResults::default();
 
-            match get_op_size(&target) {
+            match get_op_size(&target).unwrap() {
                 InstructionSize::Eight => {
                     let value = get_x8(&target, reg, mem);
-                    set_x8(&target, reg, mem, value + 1);
+                    set_x8(&target, reg, mem, value.wrapping_add(1));
                     results.zero = Some(FlagResult::Unset);
                     results.half_carry =
                         Some(match check_half_carry8(ArithmeticMode::Add, value, 1) {
@@ -251,7 +288,7 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                 }
                 InstructionSize::Sixteen => {
                     let value = get_x16(&target, reg, mem);
-                    set_x16(&target, reg, mem, value + 1);
+                    set_x16(&target, reg, mem, value.wrapping_add(1));
                     results.zero = Some(FlagResult::Unset);
                     results.half_carry =
                         Some(match check_half_carry16(ArithmeticMode::Add, value, 1) {
@@ -267,12 +304,12 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
             let target = instr.target.unwrap();
             let mut results = FlagResults::default();
 
-            match get_op_size(&target) {
+            match get_op_size(&target).unwrap() {
                 InstructionSize::Eight => {
                     let value = get_x8(&target, reg, mem);
                     // TODO: check for integer overflow
-                    set_x8(&target, reg, mem, value - 1);
-                    results.zero = Some(match value - 1 {
+                    set_x8(&target, reg, mem, value.wrapping_sub(1));
+                    results.zero = Some(match value.wrapping_sub(1) {
                         0 => FlagResult::Set,
                         _ => FlagResult::Unset,
                     });
@@ -285,8 +322,8 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                 }
                 InstructionSize::Sixteen => {
                     let value = get_x16(&target, reg, mem);
-                    set_x16(&target, reg, mem, value - 1);
-                    results.zero = Some(match value - 1 {
+                    set_x16(&target, reg, mem, value.wrapping_sub(1));
+                    results.zero = Some(match value.wrapping_sub(1) {
                         0 => FlagResult::Set,
                         _ => FlagResult::Unset,
                     });
@@ -296,6 +333,47 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                             false => FlagResult::Unset,
                         },
                     );
+                }
+            }
+
+            modify_flags(reg, instr.flags, results)
+        }
+        Operation::ADD => {
+            let source = instr.source.unwrap();
+            let target = instr.target.unwrap();
+            let mut results = FlagResults::default();
+
+            let op_size;
+            if get_op_size(&source).is_some() {
+                op_size = get_op_size(&source).unwrap();
+            } else {
+                op_size = get_op_size(&target).expect("Cannot determine instruction size");
+            }
+
+            match op_size {
+                InstructionSize::Eight => {
+                    todo!("Add 8-bit")
+                }
+                InstructionSize::Sixteen => {
+                    let source_value = get_x16(&source, reg, mem);
+                    let target_value = get_x16(&target, reg, mem);
+                    set_x16(&target, reg, mem, target_value.wrapping_add(source_value));
+                    results.zero = Some(match target_value.wrapping_add(source_value) {
+                        0 => FlagResult::Set,
+                        _ => FlagResult::Unset,
+                    });
+                    results.half_carry = Some(
+                        match check_half_carry16(ArithmeticMode::Add, target_value, source_value) {
+                            true => FlagResult::Set,
+                            false => FlagResult::Unset,
+                        },
+                    );
+                    results.carry = Some(
+                        match check_carry16(ArithmeticMode::Add, target_value, source_value) {
+                            true => FlagResult::Set,
+                            false => FlagResult::Unset,
+                        }
+                    )
                 }
             }
 
@@ -396,6 +474,10 @@ fn get_x8(target: &InstructionTarget, reg: &Registers, mem: &MemoryBus) -> u8 {
         InstructionTarget::H => reg.get_reg8(Register::H),
         InstructionTarget::L => reg.get_reg8(Register::L),
         InstructionTarget::N8(addr) => mem.read(*addr),
+        InstructionTarget::Ref(inner) => {
+            let addr = get_x16(&inner, reg, mem);
+            mem.read(addr)
+        }
         _ => panic!("Unsupported target for 8-bit value read"),
     }
 }
@@ -405,8 +487,13 @@ fn get_x16(target: &InstructionTarget, reg: &Registers, mem: &MemoryBus) -> u16 
         InstructionTarget::BC => reg.get_reg16(RegisterPair::BC),
         InstructionTarget::DE => reg.get_reg16(RegisterPair::DE),
         InstructionTarget::HL => reg.get_reg16(RegisterPair::HL),
+        InstructionTarget::SP => reg.sp,
         InstructionTarget::N16(addr) => {
-            ((mem.read((*addr) + 1) as u16) << 8) | mem.read(*addr) as u16
+            u16::from_le_bytes([mem.read(*addr), mem.read((*addr) + 1)])
+        }
+        InstructionTarget::Ref(inner) => {
+            let addr = get_x16(&inner, reg, mem);
+            u16::from_le_bytes([mem.read(addr), mem.read((addr) + 1)])
         }
         _ => panic!("Unsupported target for 16-bit value read"),
     }
@@ -422,6 +509,10 @@ fn set_x8(target: &InstructionTarget, reg: &mut Registers, mem: &mut MemoryBus, 
         InstructionTarget::H => reg.set_reg8(Register::H, value),
         InstructionTarget::L => reg.set_reg8(Register::L, value),
         InstructionTarget::N8(addr) => mem.write(*addr, value),
+        InstructionTarget::Ref(inner) => {
+            let addr = get_x16(&inner, reg, mem);
+            mem.write(addr, value);
+        }
         _ => panic!("Unsupported target for 8-bit value write"),
     }
 }
@@ -431,9 +522,15 @@ fn set_x16(target: &InstructionTarget, reg: &mut Registers, mem: &mut MemoryBus,
         InstructionTarget::BC => reg.set_reg16(RegisterPair::BC, value),
         InstructionTarget::DE => reg.set_reg16(RegisterPair::DE, value),
         InstructionTarget::HL => reg.set_reg16(RegisterPair::HL, value),
+        InstructionTarget::SP => reg.sp = value,
         InstructionTarget::N16(addr) => {
             mem.write((*addr) + 1, (value >> 8) as u8);
             mem.write(*addr, value as u8);
+        }
+        InstructionTarget::Ref(inner) => {
+            let addr = get_x16(&inner, reg, mem);
+            mem.write((addr) + 1, (value >> 8) as u8);
+            mem.write(addr, value as u8);
         }
         _ => panic!("Unsupported target for 16-bit value write"),
     }

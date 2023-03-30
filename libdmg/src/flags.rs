@@ -26,7 +26,7 @@ pub fn check_carry16(mode: ArithmeticMode, a: u16, b: u16) -> bool {
 
 pub fn check_half_carry16(mode: ArithmeticMode, a: u16, b: u16) -> bool {
     match mode {
-        ArithmeticMode::Add => (a & 0x0F00) + (b & 0x0F00) & 0x1000 == 0x1000,
+        ArithmeticMode::Add => (a & 0x0FFF) + (b & 0x0FFF) & 0x1000 == 0x1000,
         ArithmeticMode::Subtract => (a & 0x1000 == 0x1000) && (b & 0x0FFF > 0x0),
     }
 }
@@ -125,6 +125,14 @@ mod tests {
                 ArithmeticMode::Add,
                 0b0000_1111_0000_0000,
                 0b0000_0001_0000_0000
+            )
+        );
+        assert_eq!(
+            true,
+            check_half_carry16(
+                ArithmeticMode::Add,
+                0b1111_1111_1111_1111,
+                0b0000_0000_0000_0001
             )
         );
 
