@@ -70,6 +70,7 @@ enum Operation {
     DEC,
     ADD,
     RXC(Direction),
+    STOP,
 }
 
 enum Direction {
@@ -240,6 +241,84 @@ fn get_instruction(code: u16, reg: &Registers) -> Instruction {
                 ..Default::default()
             },
         },
+        0x0A => Instruction {
+            // LD A, (BC)
+            source: Some(InstructionTarget::Ref(Box::new(InstructionTarget::BC))),
+            target: Some(InstructionTarget::A),
+            operation: Operation::LD,
+            cycles: 8,
+            length: 1,
+            flags: FlagInstruction::default(),
+        },
+        0x0B => Instruction {
+            // DEC BC
+            source: None,
+            target: Some(InstructionTarget::BC),
+            operation: Operation::DEC,
+            cycles: 8,
+            length: 1,
+            flags: FlagInstruction::default(),
+        },
+        0x0C => Instruction {
+            // INC C
+            source: None,
+            target: Some(InstructionTarget::C),
+            operation: Operation::INC,
+            cycles: 4,
+            length: 1,
+            flags: FlagInstruction {
+                zero: FlagOperation::Dependent,
+                subtract: FlagOperation::Unset,
+                half_carry: FlagOperation::Dependent,
+                ..Default::default()
+            },
+        },
+        0x0D => Instruction {
+            // DEC C
+            source: None,
+            target: Some(InstructionTarget::C),
+            operation: Operation::DEC,
+            cycles: 4,
+            length: 1,
+            flags: FlagInstruction {
+                zero: FlagOperation::Dependent,
+                subtract: FlagOperation::Set,
+                half_carry: FlagOperation::Dependent,
+                ..Default::default()
+            }
+        },
+        0x0E => Instruction {
+            // LD C, u8
+            source: Some(InstructionTarget::N8(reg.pc + 1)),
+            target: Some(InstructionTarget::C),
+            operation: Operation::LD,
+            cycles: 8,
+            length: 2,
+            flags: FlagInstruction::default(),
+        },
+        0x0F => Instruction {
+            // RRCA
+            source: None,
+            target: Some(InstructionTarget::A),
+            operation: Operation::RXC(Direction::Right),
+            cycles: 4,
+            length: 1,
+            flags: FlagInstruction {
+                zero: FlagOperation::Unset,
+                subtract: FlagOperation::Unset,
+                half_carry: FlagOperation::Unset,
+                carry: FlagOperation::Dependent,
+            }
+        },
+        0x10 => Instruction {
+            // STOP
+            source: None,
+            target: None,
+            operation: Operation::STOP,
+            cycles: 4,
+            length: 1,
+            flags: FlagInstruction::default(),
+        },
         _ => panic!("Unsupported instruction: {:#X}", code),
     }
 }
@@ -396,11 +475,24 @@ pub fn execute_instruction(code: u16, reg: &mut Registers, mem: &mut MemoryBus) 
                     });
                 }
                 Direction::Right => {
-                    todo!("RRC Not implemented");
+                    let register = target_to_register(instr.target.expect("No target provided"));
+                    let value = reg.get_reg8(register.clone());
+                    let bit0 = (value & 0x01) << 7;
+
+                    reg.set_reg8(register, (value >> 1) + bit0);
+
+                    results.carry = Some(match bit0 >> 7 {
+                        0 => FlagResult::Unset,
+                        1 => FlagResult::Set,
+                        _ => unreachable!(),
+                    })
                 }
             }
 
             modify_flags(reg, instr.flags, results)
+        },
+        Operation::STOP => {
+            // TODO: implement stop, should halt the CPU and screen until a button is pressed
         }
     }
 

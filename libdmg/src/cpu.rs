@@ -11,6 +11,7 @@ pub struct CPU {
 impl CPU {
     pub fn tick(&mut self) {
         self.execute_instruction();
+        // TODO: interrupt handling
     }
 
     fn execute_instruction(&mut self) {

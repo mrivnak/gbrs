@@ -457,3 +457,134 @@ fn test_0x09_ADD_HL_BC() {
     assert_eq!(true, reg.get_flag(Flag::HalfCarry));
     assert_eq!(true, reg.get_flag(Flag::Carry));
 }
+
+#[test]
+fn test_0x0A_LD_A_BC() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let addr = 0x0101;
+    let data = 0x42;
+
+    mem.write(addr, data);
+    reg.set_reg16(RegisterPair::BC, addr);
+
+    let _ = execute_instruction(0x0A, &mut reg, &mut mem);
+
+    assert_eq!(data, reg.get_reg8(Register::A));
+}
+
+#[test]
+fn test_0x0B_DEC_BC() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0x1234;
+    reg.set_reg16(RegisterPair::BC, data);
+
+    let _ = execute_instruction(0x0B, &mut reg, &mut mem);
+
+    assert_eq!(data - 1, reg.get_reg16(RegisterPair::BC));
+}
+
+#[test]
+fn test_0x0C_INC_C() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0x12;
+    reg.set_reg8(Register::C, data);
+
+    let _ = execute_instruction(0x0C, &mut reg, &mut mem);
+
+    assert_eq!(data + 1, reg.get_reg8(Register::C));
+    assert_eq!(false, reg.get_flag(Flag::Zero));
+    assert_eq!(false, reg.get_flag(Flag::Subtract));
+    assert_eq!(false, reg.get_flag(Flag::HalfCarry));
+    assert_eq!(false, reg.get_flag(Flag::Carry));
+
+    let data = 0x1F;
+    reg.set_reg8(Register::C, data);
+
+    let _ = execute_instruction(0x0C, &mut reg, &mut mem);
+
+    assert_eq!(data + 1, reg.get_reg8(Register::C));
+    assert_eq!(false, reg.get_flag(Flag::Zero));
+    assert_eq!(false, reg.get_flag(Flag::Subtract));
+    assert_eq!(true, reg.get_flag(Flag::HalfCarry));
+    assert_eq!(false, reg.get_flag(Flag::Carry));
+}
+
+#[test]
+fn test_0x0D_DEC_C() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0x20;
+    reg.set_reg8(Register::C, data);
+
+    let _ = execute_instruction(0x0D, &mut reg, &mut mem);
+
+    assert_eq!(data - 1, reg.get_reg8(Register::C));
+    assert_eq!(false, reg.get_flag(Flag::Zero));
+    assert_eq!(true, reg.get_flag(Flag::Subtract));
+    assert_eq!(false, reg.get_flag(Flag::HalfCarry));
+    assert_eq!(false, reg.get_flag(Flag::Carry));
+
+    let data = 0x10;
+    reg.set_reg8(Register::C, data);
+
+    let _ = execute_instruction(0x0D, &mut reg, &mut mem);
+
+    assert_eq!(data - 1, reg.get_reg8(Register::C));
+    assert_eq!(false, reg.get_flag(Flag::Zero));
+    assert_eq!(true, reg.get_flag(Flag::Subtract));
+    assert_eq!(true, reg.get_flag(Flag::HalfCarry));
+    assert_eq!(false, reg.get_flag(Flag::Carry));
+
+    let data = 0x01;
+    reg.set_reg8(Register::C, data);
+
+    let _ = execute_instruction(0x0D, &mut reg, &mut mem);
+
+    assert_eq!(data - 1, reg.get_reg8(Register::C));
+    assert_eq!(true, reg.get_flag(Flag::Zero));
+    assert_eq!(true, reg.get_flag(Flag::Subtract));
+    assert_eq!(false, reg.get_flag(Flag::HalfCarry));
+    assert_eq!(false, reg.get_flag(Flag::Carry));
+}
+
+#[test]
+fn test_0x0E_LD_C_u8() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0x12;
+    mem.write(reg.pc + 1, data);
+
+    let _ = execute_instruction(0x0E, &mut reg, &mut mem);
+
+    assert_eq!(data, reg.get_reg8(Register::C));
+}
+
+#[test]
+fn test_0x0F_RRCA() {
+    let mut mem = MemoryBus::default();
+    let mut reg = Registers::default();
+
+    let data = 0b1011_1011;
+    let expected = 0b1101_1101;
+    reg.set_reg8(Register::A, data);
+
+    reg.set_flag(Flag::Zero, true);
+    reg.set_flag(Flag::Subtract, true);
+    reg.set_flag(Flag::HalfCarry, true);
+
+    let _ = execute_instruction(0x0F, &mut reg, &mut mem);
+
+    assert_eq!(expected, reg.get_reg8(Register::A));
+    assert_eq!(false, reg.get_flag(Flag::Zero));
+    assert_eq!(false, reg.get_flag(Flag::Subtract));
+    assert_eq!(false, reg.get_flag(Flag::HalfCarry));
+    assert_eq!(true, reg.get_flag(Flag::Carry));
+}
