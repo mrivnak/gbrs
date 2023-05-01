@@ -7,7 +7,7 @@ edition = "2021"
 rust-version = "1.62.1"
 
 [dependencies]
-clap = "3.2.23"
+clap = "3.2.25"
 env_logger = "0.10.0"
 libdmg = { path = "../libdmg" }
 wgpu = "0.15.1"
