@@ -10,5 +10,5 @@ rust-version = "1.62.1"
 clap = "3.2.25"
 env_logger = "0.10.0"
 libdmg = { path = "../libdmg" }
-wgpu = "0.15.1"
+wgpu = "0.16.0"
 winit = "0.28.3"
